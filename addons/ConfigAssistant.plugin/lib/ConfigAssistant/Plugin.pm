@@ -16,9 +16,10 @@ sub tag_plugin_static_web_path {
     my ( $ctx, $args, $cond ) = @_;
     my $sig = $args->{'component'};
     my $obj = MT->component($sig);
+    my $ca_plugin = MT->component('ConfigAssistant');
     if ( !$obj ) {
         return $ctx->error(
-            MT->translate("The plugin you specified '[_2]' in '[_1]' could not be found.",
+            $ca_plugin->translate("The plugin you specified '[_2]' in '[_1]' could not be found.",
                           $ctx->stash('tag'), $sig)
         );
     } elsif ( $obj->registry('static_version') ) {
@@ -29,7 +30,7 @@ sub tag_plugin_static_web_path {
     } else {
         # TODO - perhaps this should default to: mt-static/plugins/$sig? 
         return $ctx->error(
-            MT->translate("The plugin you specified '[_2]' in '[_1]' has not registered a static directory. Please use <mt:StaticWebPath> instead.",
+            $ca_plugin->translate("The plugin you specified '[_2]' in '[_1]' has not registered a static directory. Please use <mt:StaticWebPath> instead.",
                           $ctx->stash('tag'), $sig )
         );
    }
@@ -39,9 +40,10 @@ sub tag_plugin_static_file_path {
     my ( $ctx, $args, $cond ) = @_;
     my $sig = $args->{'component'};
     my $obj = MT->component($sig);
+    my $ca_plugin = MT->component('ConfigAssistant');
     if ( !$obj ) {
         return $ctx->error(
-            MT->translate("The plugin you specified '[_2]' in '[_1]' could not be found.",
+            $ca_plugin->translate("The plugin you specified '[_2]' in '[_1]' could not be found.",
                           $ctx->stash('tag'), $sig)
         );
     } elsif ( $obj->registry('static_version') ) {
@@ -49,7 +51,7 @@ sub tag_plugin_static_file_path {
             MT->instance->static_file_path, 'support', 'plugins', $obj->id );
     } else {
         return $ctx->error(
-            MT->translate(
+            $ca_plugin->translate(
                 "The plugin you specified in '[_1]' has not registered a static directory. Please use <mt:StaticFilePath> instead.",
                 $_[0]->stash('tag')
             )
@@ -65,6 +67,7 @@ sub theme_options {
 
     $param ||= {};
 
+    my $ca_plugin = MT->component('ConfigAssistant');
     my $ts        = $blog->template_set;
     my $plugin    = find_theme_plugin($ts);
     my $cfg       = $app->registry('template_sets')->{$ts}->{options};
@@ -118,7 +121,7 @@ sub theme_options {
         if (!$field->{'type'}) {
             MT->log(
                 {
-                    message => "Option '$optname' in template set '$ts' did not declare a type. Skipping"
+                    message => $ca_plugin->translate("Option '[_1]' in template set '[_2]' did not declare a type. Skipping", $optname, $ts)
                 }
             );
             next;
@@ -196,8 +199,7 @@ sub theme_options {
         else {
             MT->log(
                 {
-                    message => 'Unknown config type encountered: '
-                      . $field->{'type'}
+                    message => $ca_plugin->translate('Unknown config type encountered: [_1]', $field->{'type'})
                 }
             );
         }
@@ -267,6 +269,7 @@ sub theme_options {
 # Code for this method taken from MT::CMS::Plugin
 sub save_config {
     my $app = shift;
+    my $ca_plugin = MT->component('ConfigAssistant');
     my $q          = $app->can('query') ? $app->query : $app->param;
     my $plugin_sig = $q->param('plugin_sig');
     my $profile    = $MT::Plugins{$plugin_sig};
@@ -376,7 +379,7 @@ sub save_config {
             MT->log(
                 {
                     blog_id => $blog_id,
-                    message => "Config Assistant: Republishing " . $tmpl->name
+                    message => $ca_plugin->translate("Config Assistant: Republishing [_1]", $tmpl->name)
                 }
             );
             $app->rebuild_indexes(
@@ -393,7 +396,7 @@ sub save_config {
 
         if ( $plugin->errstr ) {
             return $app->error(
-                "Error saving plugin settings: " . $plugin->errstr );
+                $ca_plugin->translate("Error saving plugin settings: [_1]", $plugin->errstr) );
         }
     }
 
@@ -1048,8 +1051,9 @@ sub _hdlr_field_cond {
 }
 
 sub _no_field {
+    my $ca_plugin = MT->component('ConfigAssistant');
     return $_[0]->error(
-        MT->translate(
+        $ca_plugin->translate(
 "You used an '[_1]' tag outside of the context of the correct content; ",
             $_[0]->stash('tag')
         )
@@ -1078,9 +1082,9 @@ sub plugin_options {
 
     require MT::Template::Context;
     my $ctx = MT::Template::Context->new();
-
+    my $ca_plugin = MT->component('ConfigAssistant');
     $fieldsets->{__global} = {
-        label => sub { "Global Options"; }
+        label => sub { $ca_plugin->translate("Global Options"); }
     };
 
     # this is a localized stash for field HTML
@@ -1168,8 +1172,7 @@ sub plugin_options {
         else {
             MT->log(
                 {
-                    message => 'Unknown config type encountered: '
-                      . $field->{'type'}
+                    message => $ca_plugin->translate('Unknown config type encountered: [_1]', $field->{'type'})
                 }
             );
         }
@@ -1259,9 +1262,10 @@ sub list_entry_mini {
     my $app = shift;
     my $q = $app->can('query') ? $app->query : $app->param;
 
+    my $plugin = MT->component('ConfigAssistant') or "OMG NO COMPONENT!?!";
     my $blog_id  = $q->param('blog_id') || 0;
     my $obj_type = $q->param('class') || 'entry';
-    my $pkg      = $app->model($obj_type) or return "Invalid request: unknown class $obj_type";
+    my $pkg      = $app->model($obj_type) or return $plugin->translate("Invalid request: unknown class [_1]", $obj_type);
 
     my $terms;
     $terms->{blog_id} = $blog_id if $blog_id;
@@ -1272,7 +1276,6 @@ sub list_entry_mini {
         direction => 'descend',
     );
 
-    my $plugin = MT->component('ConfigAssistant') or die "OMG NO COMPONENT!?!";
     my $tmpl = $plugin->load_tmpl('entry_list.mtml');
     $tmpl->param('obj_type',$obj_type);
     return $app->listing(
@@ -1409,7 +1412,7 @@ s{(<form method="post" action="<\$?mt:var name="script_url"\$?>" id="plugin-<\$?
 sub tag_config_form {
     my ( $ctx, $args, $cond ) = @_;
     return
-"<p>Our sincerest apologies. This plugin uses a Config Assistant syntax which is no longer supported. Please notify the developer of the plugin.</p>";
+'<p><__trans phrase="Our sincerest apologies. This plugin uses a Config Assistant syntax which is no longer supported. Please notify the developer of the plugin."></p>';
 }
 
 1;

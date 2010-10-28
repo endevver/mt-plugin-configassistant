@@ -77,7 +77,7 @@ sub _apply_prefs {
     my ( $blog, $pid ) = @_;
 
     my $label = &{ MT->registry('blog_preferences')->{$pid}->{label} };
-
+    my $ca_plugin = MT->component('ConfigAssistant');
     # Set plugin preferences.
     my $plugins = MT->registry('blog_preferences', $pid, 'plugin_data');
     foreach my $plugin_id ( keys %$plugins ) {
@@ -86,9 +86,8 @@ sub _apply_prefs {
         MT->log(
             {
                 blog_id => $blog->id,
-                message => "Config Assistant is configuring "
-                  . $plugin->name . " preferences for "
-                  . $blog->name . ".",
+                message => $ca_plugin->translate("Config Assistant is configuring ".
+                                "[_1] preferences for [_2].", $plugin->name, $blog->name),
                 level => MT::Log::INFO(),
             }
         );
@@ -112,9 +111,8 @@ sub _apply_prefs {
     MT->log(
         {
             blog_id => $blog->id,
-            message => "Config Assistant is configuring "
-              . $blog->name
-              . " with $label preferences.",
+            message => $ca_plugin->translate("Config Assistant is configuring" . 
+                            " [_1] with [_2] preferences.", $blog->name, $label),
             level => MT::Log::INFO(),
         }
     );
@@ -129,8 +127,9 @@ sub _apply_prefs {
             MT->log(
                 {
                     blog_id => $blog->id,
-                    message => "Config Assistant tried to set a blog "
-                        . "preference $col that does not exist.",
+                    message => $ca_plugin->translate("Config Assistant tried to set " .
+                        "a blog preferences [_1] that does not exist.", $col),
+
                     level => MT::Log::WARNING(),
                 }
             );

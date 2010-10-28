@@ -14,7 +14,7 @@
             <mtapp:statusmsg
                 id="missing-required-field"
                 class="error">
-                The field <mt:Var name="label"> is a required field but has no value. Enter a value and save changes before publishing.
+                <__trans phrase="The field [_1] is a required field but has no value. Enter a value and save changes before publishing." params="<mt:Var name="label">">
             </mtapp:statusmsg>
         </mt:loop>
     </mt:if>
@@ -83,7 +83,7 @@
            mt:mode="ca_save_config"
            type="submit"
            class="primary-button"
-           >Save Changes</button>
+           ><__trans phrase="Save Changes"></button>
        </div>
      </div>
    </div>

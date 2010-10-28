@@ -7,6 +7,7 @@ description: This plugin provides a simple YAML based framework for creating plu
 version: 2.1.4
 static_version: 4
 schema_version: 2
+l10n_class: ConfigAssistant::L10N
 
 applications:
   cms:

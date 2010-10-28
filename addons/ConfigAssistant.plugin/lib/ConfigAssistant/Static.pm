@@ -38,7 +38,7 @@ sub upgrade {
             $saved_version = $ver->{$plugin_id} if $ver;
         
             if ($static_version > $saved_version) {
-                $self->progress('Copying static files for <strong>'.$plugin->name.'</strong> to mt-static/support/plugins/...');
+                $self->progress( $self->translate('Copying static files for <strong>[_1]</strong> to mt-static/support/plugins/...', $plugin->name) );
 
                 # Create the plugin's directory.
                 $self->progress( _make_dir($plugin->id, $self) );
@@ -67,8 +67,8 @@ sub upgrade {
     }
     else {
         # Static File Path wasn't set--warn the user.
-        $self->error( 'The <code>StaticFilePath</code> Configuration '
-                        .'Directive must be set for static file copy to run.' );
+        $self->error( $self->translate('The <code>StaticFilePath</code> Configuration '
+                        .'Directive must be set for static file copy to run.') );
     }
     # Always return true so that the upgrade can continue.
     1;

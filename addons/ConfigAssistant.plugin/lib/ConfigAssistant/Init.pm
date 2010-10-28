@@ -173,14 +173,15 @@ sub load_tags {
 # First load tags that correspond with Plugin Settings
 # TODO: this struct needs to be abstracted out to be similar to template set options
     my $cfg = $app->registry('plugin_config');
+    my $ca_plugin = MT->component('ConfigAssistant');
     foreach my $plugin_id ( keys %$cfg ) {
         my $plugin_cfg = $cfg->{$plugin_id};
         my $p          = delete $cfg->{$plugin_id}->{'plugin'};
         foreach my $key ( keys %$plugin_cfg ) {
             MT->log(
                 {
-                    message => $p->name
-                      . " is using a Config Assistant syntax that is no longer supported. plugin_config needs to be updated to 'options'. Please consult documentation.",
+                    message => $ca_plugin->translate("[_1] is using a Config Assistant syntax that is no longer supported. "
+                                    . "plugin_config needs to be updated to 'options'. Please consult documentation.", $p->name),
                     class    => 'system',
                     category => 'plugin',
                     level    => MT::Log::ERROR(),
@@ -406,7 +407,7 @@ sub load_tags {
             $tag = $obj->id . 'StaticFilePath';
             my $dir = $obj->path;
             $tags->{function}->{$tag} = sub {
-                MT->log("The usage of the tag '$tag' has been deprecated. Please use mt:PluginStaticFilePath instead");
+                MT->log($ca_plugin->translate("The usage of the tag '[_1]' has been deprecated. Please use mt:PluginStaticFilePath instead", $tag ));
                 $_[0]->stash( 'field',     $tag     );
                 $_[0]->stash( 'plugin_ns', $obj->id );
                 $_[0]->stash( 'scope',     'system' );
@@ -418,7 +419,7 @@ sub load_tags {
             $url   .= '/' unless $url =~ m!/$!;
             $url   .= 'support/plugins/'.$obj->id.'/';
             $tags->{function}->{$tag} = sub {
-                MT->log("The usage of the tag '$tag' has been deprecated. Please use mt:PluginStaticWebPath instead");
+                MT->log($ca_plugin->translate("The usage of the tag '[_1]' has been deprecated. Please use mt:PluginStaticWebPath instead", $tag));
                 $_[0]->stash( 'field',     $tag     );
                 $_[0]->stash( 'plugin_ns', $obj->id );
                 $_[0]->stash( 'scope',     'system' );
